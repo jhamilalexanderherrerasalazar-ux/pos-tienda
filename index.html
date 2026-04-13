@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS Móvil - Control de Ventas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; font-family: sans-serif; }
+        .card-stats { border-left: 5px solid #0d6efd; }
+        .btn-grande { padding: 20px; font-size: 1.2rem; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container py-4">
+    <h2 class="text-center mb-4">🚀 Panel de Ventas</h2>
+
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+            <label class="form-label fw-bold">Tipo de Cambio del Día (TC):</label>
+            <input type="number" id="tc_dia" class="form-control form-control-lg" value="6.96">
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow">
+        <div class="card-body">
+            <h5 class="card-title">Registrar Venta</h5>
+            <input type="text" id="modelo" class="form-control mb-2" placeholder="Modelo del Equipo">
+            <input type="number" id="precio_venta" class="form-control mb-2" placeholder="Precio de Venta (USD)">
+            <select id="vendedor" class="form-select mb-3">
+                <option value="">Seleccionar Vendedor</option>
+                <option value="Juan">Juan</option>
+                <option value="Maria">Maria</option>
+            </select>
+            <button onclick="registrarVenta()" class="btn btn-primary w-100 btn-grande">REGISTRAR VENTA</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-6">
+            <div class="card card-stats p-3 text-center">
+                <small>Ventas Hoy</small>
+                <h4 id="total_dia">$0</h4>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="card card-stats p-3 text-center border-success">
+                <small>Comisión Semanal</small>
+                <h4 id="comision_semana" class="text-success">$0</h4>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="mt-4">Ventas Recientes</h5>
+    <ul id="lista_ventas" class="list-group shadow-sm"></ul>
+</div>
+
+<script>
+    // LÓGICA DE NEGOCIO
+    let ventas = [];
+
+    function registrarVenta() {
+        const modelo = document.getElementById('modelo').value;
+        const precio = parseFloat(document.getElementById('precio_venta').value);
+        const tc = document.getElementById('tc_dia').value;
+        const vendedor = document.getElementById('vendedor').value;
+
+        if(!modelo || !precio || !vendedor) return alert("Llena todos los campos");
+
+        // Regla de Negocio: Comisión del 3% si el precio es mayor a 200, 2% si es menor.
+        const porcentaje = precio > 200 ? 0.03 : 0.02;
+        const comision = precio * porcentaje;
+
+        const nuevaVenta = {
+            fecha: new Date().toLocaleDateString(),
+            modelo,
+            precio,
+            tc,
+            comision,
+            vendedor
+        };
+
+        ventas.push(nuevaVenta);
+        actualizarInterfaz();
+        limpiarForm();
+        enviarAGoogleSheets(nuevaVenta); // Conexión futura
+    }
+
+    function actualizarInterfaz() {
+        const lista = document.getElementById('lista_ventas');
+        let totalDia = 0;
+        let totalComision = 0;
+        lista.innerHTML = "";
+
+        ventas.forEach(v => {
+            totalDia += v.precio;
+            totalComision += v.comision;
+            lista.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                ${v.modelo} <span class="badge bg-primary rounded-pill">$${v.precio}</span>
+            </li>`;
+        });
+
+        document.getElementById('total_dia').innerText = `$${totalDia}`;
+        document.getElementById('comision_semana').innerText = `$${totalComision.toFixed(2)}`;
+    }
+
+    function limpiarForm() {
+        document.getElementById('modelo').value = "";
+        document.getElementById('precio_venta').value = "";
+    }
+
+    // Aquí conectarás tu Script de Google Sheets más adelante
+    function enviarAGoogleSheets(datos) {
+        console.log("Enviando a reporte...", datos);
+    }
+</script>
+
+</body>
+</html>
