@@ -3,110 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS Celulares - Sistema de Comisiones</title>
+    <title>POS Móvil - Equipo Milo, Yef, Brandom</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f0f2f5; padding-bottom: 30px; }
-        .card { border-radius: 12px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .label-bold { font-weight: 700; color: #333; margin-top: 10px; }
-        .resaltado { background-color: #e8f0fe; font-weight: bold; }
-        .btn-registrar { padding: 18px; font-size: 1.2rem; transition: 0.3s; }
+        body { background-color: #f4f7f6; padding-bottom: 40px; font-family: 'Segoe UI', sans-serif; }
+        .card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .label-bold { font-weight: 700; color: #444; margin-top: 10px; font-size: 0.9rem; }
+        .resaltado-verde { background-color: #eafaf1; font-weight: bold; color: #157347 !important; border: 1px solid #d1e7dd; }
+        .btn-registrar { padding: 18px; font-size: 1.2rem; font-weight: bold; border-radius: 12px; margin-top: 15px; transition: 0.3s; }
+        .header-top { background: #212529; color: white; padding: 20px; border-radius: 0 0 20px 20px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-<div class="container mt-3">
-    <h3 class="text-center mb-4">📱 Registro de Ventas y Comisiones</h3>
+<div class="header-top text-center shadow">
+    <h4 class="mb-0">Control de Ventas y Comisiones</h4>
+    <small>Equipo: Milo - Yef - Brandom</small>
+</div>
 
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-6">
-                    <label class="label-bold">TC del día:</label>
-                    <input type="number" id="tc_dia" class="form-control" value="6.96" oninput="calcularTodo()">
+<div class="container">
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body py-2">
+            <div class="row align-items-center">
+                <div class="col-7">
+                    <label class="label-bold mt-0">TC Hoy:</label>
+                    <input type="number" id="tc_dia" class="form-control form-control-sm" value="9.45" oninput="calcularTodo()">
                 </div>
-                <div class="col-6 text-end">
-                    <label class="label-bold text-primary">Comisión:</label>
-                    <h4 id="vista_comision">0.00 USD</h4>
+                <div class="col-5 text-end">
+                    <small class="text-muted">Comisión 30%</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card">
+    <div class="card shadow">
         <div class="card-body">
-            <label class="label-bold">Modelo / Producto:</label>
-            <input type="text" id="modelo" class="form-control mb-2" placeholder="Ej: Samsung S24 Ultra">
-
-            <label class="label-bold">Precio de Venta (USD):</label>
-            <input type="number" id="precio_usd" class="form-control mb-2" placeholder="Precio cobrado al cliente" oninput="calcularTodo()">
-
-            <label class="label-bold">Precio en Bolivianos (Bs):</label>
-            <input type="text" id="precio_bs" class="form-control mb-2 resaltado" readonly>
-
-            <label class="label-bold text-danger">Precio de Lista / Costo (USD):</label>
-            <input type="number" id="costo_real" class="form-control mb-2" placeholder="Precio base de mercadería" oninput="calcularTodo()">
-
-            <label class="label-bold text-success">Diferencia / Margen (USD):</label>
-            <input type="text" id="diferencia" class="form-control mb-3 resaltado" readonly style="color: green;">
-
             <label class="label-bold">Vendedor:</label>
-            <select id="vendedor" class="form-select mb-4">
-                <option value="Juan">Milo</option>
-                <option value="Maria">Yef</option>
-                <option value="Pedro">Brandom</option>
+            <select id="vendedor" class="form-select mb-2 border-primary">
+                <option value="Milo">Milo</option>
+                <option value="Yef">Yef</option>
+                <option value="Brandom">Brandom</option>
             </select>
 
+            <label class="label-bold">Modelo del Equipo:</label>
+            <input type="text" id="modelo" class="form-control mb-2" placeholder="Ej: iPhone 15 Pro Max">
+
+            <div class="row">
+                <div class="col-6">
+                    <label class="label-bold text-success">Venta (Bs):</label>
+                    <input type="number" id="precio_bs" class="form-control mb-2" placeholder="0" oninput="calcularTodo()">
+                </div>
+                <div class="col-6">
+                    <label class="label-bold text-danger">Costo (USD):</label>
+                    <input type="number" id="costo_real_usd" class="form-control mb-2" placeholder="0" oninput="calcularTodo()">
+                </div>
+            </div>
+
+            <hr class="my-3">
+
+            <div class="row text-center mb-3">
+                <div class="col-6">
+                    <small class="text-muted d-block">Ganancia (Bs)</small>
+                    <input type="text" id="diferencia_bs" class="form-control resaltado-verde text-center" readonly>
+                </div>
+                <div class="col-6">
+                    <small class="text-primary d-block fw-bold">Comisión (Bs)</small>
+                    <h3 id="vista_comision" class="text-primary mb-0">0.00</h3>
+                </div>
+            </div>
+
+            <label class="label-bold">Nota / Detalle de la venta:</label>
+            <textarea id="nota" class="form-control mb-3" rows="2" placeholder="Ej: Pago QR, falta protector, cliente recomendado..."></textarea>
+
             <button onclick="registrarVenta()" id="btnRegistrar" class="btn btn-primary w-100 btn-registrar">
-                GUARDAR VENTA
+                GUARDAR EN SISTEMA
             </button>
         </div>
     </div>
 </div>
 
 <script>
-    // Función para cálculos automáticos mientras escribes
     function calcularTodo() {
-        const usd = parseFloat(document.getElementById('precio_usd').value) || 0;
+        const bsVenta = parseFloat(document.getElementById('precio_bs').value) || 0;
         const tc = parseFloat(document.getElementById('tc_dia').value) || 0;
-        const costo = parseFloat(document.getElementById('costo_real').value) || 0;
+        const costoUsd = parseFloat(document.getElementById('costo_real_usd').value) || 0;
 
-        // 1. Cálculo en Bolivianos
-        document.getElementById('precio_bs').value = (usd * tc).toFixed(2) + " Bs.";
+        const costoEnBs = costoUsd * tc;
+        const margenBs = bsVenta - costoEnBs;
+        
+        document.getElementById('diferencia_bs').value = margenBs.toFixed(2);
 
-        // 2. Cálculo de Diferencia (Ganancia sobre precio lista)
-        const diff = usd - costo;
-        document.getElementById('diferencia').value = diff.toFixed(2) + " USD";
-
-        // 3. Cálculo de Comisión (3% del precio de venta)
-        const comision = usd * 0.03;
-        document.getElementById('vista_comision').innerText = comision.toFixed(2) + " USD";
+        // 30% de la ganancia
+        const comisionBs = margenBs > 0 ? (margenBs * 0.30) : 0;
+        document.getElementById('vista_comision').innerText = comisionBs.toFixed(2);
     }
 
     function registrarVenta() {
         const btn = document.getElementById('btnRegistrar');
-        // RECUERDA: Pega aquí tu URL de la nueva implementación de Google
-        const url_google = "https://script.google.com/macros/s/AKfycbzdpOJIa80NUYMq3vCNC-gJN6WcCwJe610hxI5uhgn18XMWEhQg0tB-aTrNb3b4RDfdlg/exec";
+        const url_google = "https://script.google.com/macros/s/AKfycbxUfD3Ud0B7-T8vVI5GiqmTR7WMcv6S13wcevd3MSIH8JlMnv1RguatlBK8cyk8GlHPHQ/exec"; // RECUERDA CAMBIAR ESTO
 
         const datos = {
             fecha: new Date().toLocaleString(),
             modelo: document.getElementById('modelo').value,
-            precio: document.getElementById('precio_usd').value,
             precio_bs: document.getElementById('precio_bs').value,
-            costo: document.getElementById('costo_real').value,
-            diferencia: document.getElementById('diferencia').value,
+            costo_usd: document.getElementById('costo_real_usd').value,
+            margen_bs: document.getElementById('diferencia_bs').value,
             tc: document.getElementById('tc_dia').value,
-            comision: (document.getElementById('precio_usd').value * 0.03).toFixed(2),
-            vendedor: document.getElementById('vendedor').value
+            comision_bs: document.getElementById('vista_comision').innerText,
+            vendedor: document.getElementById('vendedor').value,
+            nota: document.getElementById('nota').value
         };
 
-        if(!datos.modelo || !datos.precio || !datos.costo) { 
-            alert("⚠️ Por favor completa Modelo, Precio de Venta y Precio de Lista"); 
+        if(!datos.modelo || !datos.precio_bs || !datos.costo_usd) { 
+            alert("⚠️ Por favor completa los datos básicos."); 
             return; 
         }
 
         btn.disabled = true;
-        btn.innerText = "Enviando...";
+        btn.innerText = "Guardando...";
 
         fetch(url_google, {
             method: 'POST',
@@ -114,20 +128,20 @@
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(datos)
         }).then(() => {
-            alert("✅ Venta registrada y Comisión guardada");
+            alert("✅ Registro exitoso para " + datos.vendedor);
             btn.disabled = false;
-            btn.innerText = "GUARDAR VENTA";
-            // Limpiar campos
+            btn.innerText = "GUARDAR EN SISTEMA";
+            // Limpiar
             document.getElementById('modelo').value = "";
-            document.getElementById('precio_usd').value = "";
-            document.getElementById('costo_real').value = "";
+            document.getElementById('precio_bs').value = "";
+            document.getElementById('costo_real_usd').value = "";
+            document.getElementById('nota').value = "";
             calcularTodo();
         }).catch(err => {
-            alert("❌ Error al conectar con Google Sheets");
+            alert("❌ Error: No se pudo guardar.");
             btn.disabled = false;
         });
     }
 </script>
-
 </body>
 </html>
