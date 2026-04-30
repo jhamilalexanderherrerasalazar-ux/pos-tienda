@@ -12,6 +12,9 @@
         .resaltado-verde { background-color: #eafaf1; font-weight: bold; color: #157347 !important; border: 1px solid #d1e7dd; }
         .btn-registrar { padding: 18px; font-size: 1.2rem; font-weight: bold; border-radius: 12px; margin-top: 15px; transition: 0.3s; }
         .header-top { background: #212529; color: white; padding: 20px; border-radius: 0 0 20px 20px; margin-bottom: 20px; }
+        /* Estilos para el panel de Jefe */
+        #panelJefe { display: none; background: white; border-radius: 15px; padding: 20px; margin-top: 20px; border: 2px solid #0d6efd; }
+        .ticket { font-family: 'Courier New', Courier, monospace; background: #fff; padding: 15px; border: 1px solid #ddd; font-size: 0.85rem; }
     </style>
 </head>
 <body>
@@ -80,36 +83,73 @@
             </button>
         </div>
     </div>
+
+    <div class="text-center mt-4">
+        <button class="btn btn-sm btn-outline-secondary" onclick="accesoJefe()" style="border:none; opacity: 0.5;">🔒 Acceso Administración</button>
+    </div>
+
+    <div id="panelJefe" class="shadow">
+        <h5 class="text-center">📊 Cierre de Caja (Modo Jefe)</h5>
+        <div class="mb-3">
+            <label class="label-bold">Filtrar por:</label>
+            <div class="btn-group w-100" role="group">
+                <button type="button" class="btn btn-outline-primary active" onclick="generarReporte('hoy')">Hoy</button>
+                <button type="button" class="btn btn-outline-primary" onclick="generarReporte('semanal')">Semana</button>
+                <button type="button" class="btn btn-outline-primary" onclick="generarReporte('mensual')">Mes</button>
+            </div>
+        </div>
+        
+        <div id="ticketContainer" class="ticket shadow-sm mb-3">
+            <p class="text-center"><em>Seleccione un filtro para ver el ticket</em></p>
+        </div>
+        
+        <button class="btn btn-dark w-100 mb-2" onclick="window.print()">🖨️ Imprimir Ticket</button>
+        <button class="btn btn-light w-100" onclick="cerrarPanel()">Cerrar Panel</button>
+    </div>
 </div>
 
 <script>
+    // Variable para guardar historial local (opcional, para que el ticket funcione en el momento)
+    let ventasLocales = JSON.parse(localStorage.getItem('ventas_recientes')) || [];
+
     function calcularTodo() {
         const bsVenta = parseFloat(document.getElementById('precio_bs').value) || 0;
         const tc = parseFloat(document.getElementById('tc_dia').value) || 0;
         const costoUsd = parseFloat(document.getElementById('costo_real_usd').value) || 0;
-
         const costoEnBs = costoUsd * tc;
         const margenBs = bsVenta - costoEnBs;
-        
         document.getElementById('diferencia_bs').value = margenBs.toFixed(2);
-
-        // 30% de la ganancia
         const comisionBs = margenBs > 0 ? (margenBs * 0.30) : 0;
         document.getElementById('vista_comision').innerText = comisionBs.toFixed(2);
     }
 
+    function accesoJefe() {
+        const pin = prompt("Ingrese PIN de seguridad:");
+        if(pin === "0000") { // <--- CAMBIA TU PIN AQUÍ
+            document.getElementById('panelJefe').style.display = 'block';
+            window.scrollTo(0, document.body.scrollHeight);
+        } else {
+            alert("PIN Incorrecto");
+        }
+    }
+
+    function cerrarPanel() {
+        document.getElementById('panelJefe').style.display = 'none';
+    }
+
     function registrarVenta() {
         const btn = document.getElementById('btnRegistrar');
-        const url_google = "https://script.google.com/macros/s/AKfycbxUfD3Ud0B7-T8vVI5GiqmTR7WMcv6S13wcevd3MSIH8JlMnv1RguatlBK8cyk8GlHPHQ/exec"; // RECUERDA CAMBIAR ESTO
+        const url_google = "https://script.google.com/macros/s/AKfycbxUfD3Ud0B7-T8vVI5GiqmTR7WMcv6S13wcevd3MSIH8JlMnv1RguatlBK8cyk8GlHPHQ/exec";
 
         const datos = {
-            fecha: new Date().toLocaleString(),
+            fecha: new Date().toISOString(), // Usamos ISO para filtrar mejor después
+            fecha_legible: new Date().toLocaleString(),
             modelo: document.getElementById('modelo').value,
-            precio_bs: document.getElementById('precio_bs').value,
-            costo_usd: document.getElementById('costo_real_usd').value,
-            margen_bs: document.getElementById('diferencia_bs').value,
+            precio_bs: parseFloat(document.getElementById('precio_bs').value),
+            costo_usd: parseFloat(document.getElementById('costo_real_usd').value),
+            margen_bs: parseFloat(document.getElementById('diferencia_bs').value),
             tc: document.getElementById('tc_dia').value,
-            comision_bs: document.getElementById('vista_comision').innerText,
+            comision_bs: parseFloat(document.getElementById('vista_comision').innerText),
             vendedor: document.getElementById('vendedor').value,
             nota: document.getElementById('nota').value
         };
@@ -122,6 +162,10 @@
         btn.disabled = true;
         btn.innerText = "Guardando...";
 
+        // Guardamos localmente para el reporte inmediato
+        ventasLocales.push(datos);
+        localStorage.setItem('ventas_recientes', JSON.stringify(ventasLocales));
+
         fetch(url_google, {
             method: 'POST',
             mode: 'no-cors',
@@ -131,7 +175,7 @@
             alert("✅ Registro exitoso para " + datos.vendedor);
             btn.disabled = false;
             btn.innerText = "GUARDAR EN SISTEMA";
-            // Limpiar
+            // Limpiar campos
             document.getElementById('modelo').value = "";
             document.getElementById('precio_bs').value = "";
             document.getElementById('costo_real_usd').value = "";
@@ -141,6 +185,49 @@
             alert("❌ Error: No se pudo guardar.");
             btn.disabled = false;
         });
+    }
+
+    function generarReporte(tipo) {
+        let filtradas = [];
+        const ahora = new Date();
+        
+        filtradas = ventasLocales.filter(v => {
+            const fechaV = new Date(v.fecha);
+            if(tipo === 'hoy') return fechaV.toDateString() === ahora.toDateString();
+            if(tipo === 'semanal') return (ahora - fechaV) < (7 * 24 * 60 * 60 * 1000);
+            if(tipo === 'mensual') return fechaV.getMonth() === ahora.getMonth() && fechaV.getFullYear() === ahora.getFullYear();
+        });
+
+        let totalVenta = 0;
+        let totalGanancia = 0;
+        let totalComisiones = 0;
+
+        filtradas.forEach(v => {
+            totalVenta += v.precio_bs;
+            totalGanancia += v.margen_bs;
+            totalComisiones += v.comision_bs;
+        });
+
+        let utilidadLimpia = totalGanancia - totalComisiones;
+
+        const ticketHTML = `
+            <div class="text-center">
+                <strong>TICKET DE CIERRE (${tipo.toUpperCase()})</strong><br>
+                <span>${ahora.toLocaleString()}</span>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between"><span>Ventas Totales:</span> <span>Bs ${totalVenta.toFixed(2)}</span></div>
+            <div class="d-flex justify-content-between"><span>Ganancia Bruta:</span> <span>Bs ${totalGanancia.toFixed(2)}</span></div>
+            <div class="d-flex justify-content-between text-danger"><span>Comisiones (30%):</span> <span>-Bs ${totalComisiones.toFixed(2)}</span></div>
+            <hr>
+            <div class="d-flex justify-content-between fw-bold text-success" style="font-size:1.1rem">
+                <span>UTILIDAD JEFE:</span> <span>Bs ${utilidadLimpia.toFixed(2)}</span>
+            </div>
+            <hr>
+            <small>Cantidad de equipos: ${filtradas.length}</small>
+        `;
+        
+        document.getElementById('ticketContainer').innerHTML = ticketHTML;
     }
 </script>
 </body>
